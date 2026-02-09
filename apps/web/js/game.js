@@ -168,8 +168,9 @@ class GlobeTycoonGame {
     connectToServer() {
         // Backend URL - Change this to your Render URL after deployment
         const serverUrl = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3001'
-            : 'https://globetycoon-api.onrender.com';
+    ? 'http://localhost:3001'
+    : 'https://globetycoon.onrender.com';
+
         
         this.socket = io(serverUrl, {
             transports: ['websocket', 'polling'],
