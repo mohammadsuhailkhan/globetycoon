@@ -1,0 +1,9 @@
+# Netlify Redirects for GlobeTycoon
+# Created by Mohammad Suhail Khan
+
+# API and Socket.io redirects to Render backend
+/api/*  https://globetycoon-api.onrender.com/api/:splat  200
+/socket.io/*  https://globetycoon-api.onrender.com/socket.io/:splat  200
+
+# SPA fallback - all routes serve index.html
+/*  /index.html  200

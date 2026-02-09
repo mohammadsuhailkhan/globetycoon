@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobeTycoon - Own The World</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --emerald: #1B4D3E;
+            --gold: #D4AF37;
+            --charcoal: #2C2C2C;
+            --cream: #FAF9F6;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a365d 50%, #0a1628 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 20s ease infinite;
+            color: var(--cream);
+            overflow-x: hidden;
+        }
+        
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .hero-section {
+            background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        .glass-nav {
+            background: rgba(10, 22, 40, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .luxury-button {
+            background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+            color: #0a1628;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .luxury-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
+        }
+        
+        .luxury-button-outline {
+            background: transparent;
+            border: 2px solid #D4AF37;
+            color: #D4AF37;
+            transition: all 0.3s ease;
+        }
+        
+        .luxury-button-outline:hover {
+            background: #D4AF37;
+            color: #0a1628;
+        }
+        
+        .room-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .room-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #D4AF37;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+        }
+        
+        .typing-text {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px rgba(212, 175, 55, 0.3);
+        }
+        
+        .creator-badge {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .world-map-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 500'%3E%3Cpath fill='%23D4AF37' d='M150,200 Q200,150 250,200 T350,200'/%3E%3C/svg%3E");
+            background-size: cover;
+            pointer-events: none;
+        }
+        
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.7); }
+        }
+        
+        .stats-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-overlay {
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a365d 0%, #0a1628 100%);
+            border: 2px solid #D4AF37;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+        }
+        
+        .country-flag {
+            font-size: 1.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-nav fixed w-full top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="text-2xl font-bold text-gold flex items-center gap-2" style="font-family: 'Playfair Display', serif;">
+                    <span>🌍</span> GlobeTycoon
+                </div>
+            </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#rooms" class="text-cream/80 hover:text-gold transition-colors duration-300">Game Rooms</a>
+                <a href="#leaderboard" class="text-cream/80 hover:text-gold transition-colors duration-300">Leaderboard</a>
+                <a href="#how-to-play" class="text-cream/80 hover:text-gold transition-colors duration-300">How to Play</a>
+                <a href="about.html" class="text-cream/80 hover:text-gold transition-colors duration-300">About</a>
+                <button class="luxury-button px-6 py-2 rounded-lg text-sm">
+                    Login
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section flex items-center justify-center relative pt-20">
+        <div class="world-map-bg"></div>
+        <div class="relative z-10 text-center max-w-6xl mx-auto px-6 py-20">
+            
+            <!-- Creator Credit Badge -->
+            <div class="creator-badge inline-flex items-center gap-3 px-5 py-2 rounded-full mb-8">
+                <span class="text-gold text-sm">Created by</span>
+                <span class="text-white font-semibold text-sm">Mohammad Suhail Khan</span>
+                <a href="https://instagram.com/suhail_yousafzai" target="_blank" class="text-gold hover:text-white transition-colors text-sm">@suhail_yousafzai</a>
+            </div>
+            
+            <div class="mb-8">
+                <h1 class="typing-text mb-6" id="hero-title"></h1>
+                <p class="text-xl md:text-2xl text-cream/80 mb-4 max-w-3xl mx-auto leading-relaxed">
+                    Buy iconic cities. Build global empires. Bankrupt your rivals.
+                </p>
+                <p class="text-lg text-cream/60 max-w-2xl mx-auto">
+                    The fastest competitive board game featuring real-world countries and cities.
+                </p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                <button class="luxury-button px-8 py-4 rounded-xl text-lg pulse-glow" onclick="createPrivateRoom()">
+                    🎲 Create Private Game
+                </button>
+                <button class="luxury-button-outline px-8 py-4 rounded-xl text-lg" onclick="scrollToRooms()">
+                    🏠 Join Public Room
+                </button>
+            </div>
+            
+            <!-- Live Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="stats-card p-5 rounded-xl">
+                    <div class="text-3xl font-bold text-gold mb-1" id="active-players">0</div>
+                    <div class="text-cream/60 text-sm">Online Players</div>
+                </div>
+                <div class="stats-card p-5 rounded-xl">
+                    <div class="text-3xl font-bold text-gold mb-1" id="active-games">0</div>
+                    <div class="text-cream/60 text-sm">Active Games</div>
+                </div>
+                <div class="stats-card p-5 rounded-xl">
+                    <div class="text-3xl font-bold text-gold mb-1" id="games-today">0</div>
+                    <div class="text-cream/60 text-sm">Games Today</div>
+                </div>
+                <div class="stats-card p-5 rounded-xl">
+                    <div class="text-3xl font-bold text-gold mb-1" id="total-cities">40</div>
+                    <div class="text-cream/60 text-sm">Cities to Own</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Rooms Section -->
+    <section id="rooms" class="py-20 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4" style="font-family: 'Playfair Display', serif; color: var(--gold);">
+                    Join a Game
+                </h2>
+                <p class="text-lg text-cream/70 max-w-2xl mx-auto">
+                    Jump into a match or create your own room for friends
+                </p>
+            </div>
+            
+            <div class="mb-8 flex flex-col md:flex-row gap-4 justify-between items-center">
+                <div class="flex gap-3 flex-wrap">
+                    <button class="luxury-button px-5 py-2 rounded-lg text-sm filter-btn active" data-filter="all">All</button>
+                    <button class="luxury-button-outline px-5 py-2 rounded-lg text-sm filter-btn" data-filter="casual">Casual</button>
+                    <button class="luxury-button-outline px-5 py-2 rounded-lg text-sm filter-btn" data-filter="ranked">Ranked</button>
+                    <button class="luxury-button-outline px-5 py-2 rounded-lg text-sm filter-btn" data-filter="fast">Fast (15min)</button>
+                </div>
+                <div class="relative">
+                    <input type="text" placeholder="Search rooms..." id="room-search"
+                           class="bg-white/5 backdrop-blur-sm border border-gold/30 rounded-lg px-4 py-2 text-cream placeholder-cream/40 focus:outline-none focus:border-gold w-64">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="rooms-grid">
+                <!-- Room cards populated by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Cities Section -->
+    <section class="py-20 px-6 bg-black/20">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4" style="font-family: 'Playfair Display', serif; color: var(--gold);">
+                    Cities You'll Conquer
+                </h2>
+                <p class="text-lg text-cream/70">40 iconic destinations across 8 continents</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                <div class="stats-card p-4 rounded-xl text-center hover:border-gold/50 transition-colors">
+                    <div class="country-flag mb-2">🇮🇳</div>
+                    <div class="text-sm font-semibold">India</div>
+                    <div class="text-xs text-cream/60">Mumbai, Delhi</div>
+                </div>
+                <div class="stats-card p-4 rounded-xl text-center hover:border-gold/50 transition-colors">
+                    <div class="country-flag mb-2">🇪🇬</div>
+                    <div class="text-sm font-semibold">Egypt</div>
+                    <div class="text-xs text-cream/60">Cairo</div>
+                </div>
+                <div class="stats-card p-4 rounded-xl text-center hover:border-gold/50 transition-colors">
+                    <div class="country-flag mb-2">🇹🇷</div>
+                    <div class="text-sm font-semibold">Turkey</div>
+                    <div class="text-xs text-cream/60">Istanbul</div>
+                </div>
+                <div class="stats-card p-4 rounded-xl text-center hover:border-gold/50 transition-colors">
+                    <div class="country-flag mb-2">🇬🇷</div>
+                    <div class="text-sm font-semibold">Greece</div>
+                    <div class="text-xs text-cream/60">Athens</div>
+                </div>
+                <div class="stats-card p-4 rounded-xl text-center hover:border-gold/50 transition-colors">
+                    <div class="country-flag mb-2">🇮🇹</div>
+                    <div class="text-sm font-semibold">Italy</div>
+                    <div class="text-xs text-cream/60">Rome</div>
+                </div>
+                <div class="stats-card p-4 rounded-xl text-center hover:border-gold/50 transition-colors">
+                    <div class="country-flag mb-2">🇫🇷</div>
+                    <div class="text-sm font-semibold">France</div>
+                    <div class="text-xs text-cream/60">Paris</div>
+                </div>
+                <div class="stats-card p-4 rounded-xl text-center hover:border-gold/50 transition-colors">
+                    <div class="country-flag mb-2">🇬🇧</div>
+                    <div class="text-sm font-semibold">UK</div>
+                    <div class="text-xs text-cream/60">London</div>
+                </div>
+                <div class="stats-card p-4 rounded-xl text-center hover:border-gold/50 transition-colors">
+                    <div class="country-flag mb-2">🇺🇸</div>
+                    <div class="text-sm font-semibold">USA</div>
+                    <div class="text-xs text-cream/60">NYC, LA, SF</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Play Section -->
+    <section id="how-to-play" class="py-20 px-6">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4" style="font-family: 'Playfair Display', serif; color: var(--gold);">
+                    How to Play
+                </h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="stats-card p-8 rounded-xl text-center">
+                    <div class="w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-3xl">🎲</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gold mb-3">1. Roll & Move</h3>
+                    <p class="text-cream/70">Roll the dice and travel the world. Land on cities to buy them!</p>
+                </div>
+                <div class="stats-card p-8 rounded-xl text-center">
+                    <div class="w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-3xl">🏙️</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gold mb-3">2. Build Empire</h3>
+                    <p class="text-cream/70">Own complete country sets and build landmarks to increase rent.</p>
+                </div>
+                <div class="stats-card p-8 rounded-xl text-center">
+                    <div class="w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-3xl">👑</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gold mb-3">3. Dominate</h3>
+                    <p class="text-cream/70">Bankrupt opponents through smart trades and strategic builds.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Create Room Modal -->
+    <div id="create-room-modal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center">
+        <div class="modal-content p-8 rounded-xl max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold mb-6 text-center text-gold" style="font-family: 'Playfair Display', serif;">Create Private Game</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-cream/70 mb-2">Room Name</label>
+                    <input type="text" id="room-name" placeholder="My Game Room" 
+                           class="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg text-cream focus:outline-none focus:border-gold">
+                </div>
+                
+                <div>
+                    <label class="block text-sm text-cream/70 mb-2">Game Mode</label>
+                    <select id="game-mode" class="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg text-cream focus:outline-none focus:border-gold">
+                        <option value="casual">Casual - Relaxed pace</option>
+                        <option value="ranked">Ranked - ELO rated</option>
+                        <option value="fast">Fast - 15 min matches</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm text-cream/70 mb-2">Max Players</label>
+                    <select id="max-players" class="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg text-cream focus:outline-none focus:border-gold">
+                        <option value="2">2 Players</option>
+                        <option value="3">3 Players</option>
+                        <option value="4" selected>4 Players</option>
+                        <option value="6">6 Players</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-4 mt-8">
+                    <button onclick="closeModal()" class="flex-1 px-4 py-3 border border-gold/30 rounded-lg text-cream hover:bg-white/5 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="createRoom()" class="flex-1 luxury-button px-4 py-3 rounded-lg font-semibold">
+                        Create Game
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-12 px-6 bg-black/40 border-t border-gold/20">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                
+                <!-- Brand -->
+                <div class="text-center md:text-left">
+                    <div class="text-2xl font-bold text-gold mb-2" style="font-family: 'Playfair Display', serif;">
+                        🌍 GlobeTycoon
+                    </div>
+                    <p class="text-cream/60 text-sm">Own the world. One city at a time.</p>
+                </div>
+                
+                <!-- Creator Credit -->
+                <div class="text-center">
+                    <p class="text-cream/60 text-sm mb-2">Created with ❤️ by</p>
+                    <p class="text-gold font-semibold text-lg">Mohammad Suhail Khan</p>
+                    <div class="flex items-center justify-center gap-4 mt-2 text-sm">
+                        <a href="https://instagram.com/suhail_yousafzai" target="_blank" class="text-cream/70 hover:text-gold transition-colors">
+                            📸 @suhail_yousafzai
+                        </a>
+                        <a href="https://github.com/mohammadsuhailkhan" target="_blank" class="text-cream/70 hover:text-gold transition-colors">
+                            💻 GitHub
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Support -->
+                <div class="text-center md:text-right">
+                    <a href="https://buymeacoffee.com/suhail_khan" target="_blank" 
+                       class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-5 py-2 rounded-lg font-semibold transition-colors">
+                        ☕ Buy Me a Coffee
+                    </a>
+                    <p class="text-cream/40 text-xs mt-2">contact@globetycoon.io</p>
+                </div>
+                
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-gold/10 text-center text-cream/40 text-sm">
+                © 2025 GlobeTycoon. All rights reserved. Made by Mohammad Suhail Khan.
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/lobby.js"></script>
+</body>
+</html>

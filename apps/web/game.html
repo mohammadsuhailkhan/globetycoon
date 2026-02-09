@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Room - GlobeTycoon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --emerald: #1B4D3E;
+            --gold: #D4AF37;
+            --charcoal: #2C2C2C;
+            --cream: #FAF9F6;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a365d 50%, #0a1628 100%);
+            color: var(--cream);
+            overflow-x: hidden;
+        }
+        
+        .game-board-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            position: relative;
+            aspect-ratio: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .board-space {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .board-space:hover {
+            transform: scale(1.15);
+            z-index: 20;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .board-space .price {
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+        
+        .corner-space {
+            width: 14%;
+            height: 14%;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%);
+            border: 2px solid #D4AF37;
+        }
+        
+        .property-space {
+            width: 7%;
+            height: 14%;
+        }
+        
+        .property-space.vertical {
+            width: 14%;
+            height: 7%;
+        }
+        
+        /* Country Color Groups */
+        .group-india { background: linear-gradient(180deg, #FF9933 0%, #FF9933 25%, white 25%, white 75%, #138808 75%); color: #000; }
+        .group-egypt { background: #C41E3A; color: white; }
+        .group-turkey { background: #E30A17; color: white; }
+        .group-greece { background: #0D5EAF; color: white; }
+        .group-italy { background: #009246; color: white; }
+        .group-france { background: #0055A4; color: white; }
+        .group-uk { background: #012169; color: white; }
+        .group-germany { background: #DD0000; color: white; }
+        .group-usa { background: #B22234; color: white; }
+        .group-japan { background: #BC002D; color: white; }
+        .group-china { background: #DE2910; color: white; }
+        .group-australia { background: #00008B; color: white; }
+        .group-rail { background: #4A5568; color: white; }
+        .group-utility { background: #718096; color: white; }
+        .group-special { background: rgba(255,255,255,0.1); border: 1px solid rgba(212,175,55,0.3); color: #D4AF37; }
+        
+        .player-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .action-button {
+            background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+            color: #0a1628;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .action-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+        
+        .action-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .action-button-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: #D4AF37;
+            transition: all 0.3s ease;
+        }
+        
+        .action-button-secondary:hover:not(:disabled) {
+            background: rgba(212, 175, 55, 0.2);
+        }
+        
+        .dice {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            border: 3px solid #D4AF37;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #0a1628;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dice.rolling {
+            animation: diceRoll 0.8s ease-in-out;
+        }
+        
+        @keyframes diceRoll {
+            0% { transform: rotateX(0) rotateY(0); }
+            25% { transform: rotateX(180deg) rotateY(180deg); }
+            50% { transform: rotateX(360deg) rotateY(0); }
+            75% { transform: rotateX(180deg) rotateY(180deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+        
+        .player-token {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid white;
+            position: absolute;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 30;
+        }
+        
+        .token-1 { background: #E74C3C; }
+        .token-2 { background: #3498DB; }
+        .token-3 { background: #2ECC71; }
+        .token-4 { background: #F39C12; }
+        .token-5 { background: #9B59B6; }
+        .token-6 { background: #1ABC9C; }
+        
+        .token-active {
+            box-shadow: 0 0 20px currentColor;
+            animation: tokenPulse 1.5s infinite;
+        }
+        
+        @keyframes tokenPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .chat-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 16px;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .game-log {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 12px;
+            height: 150px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+        }
+        
+        .turn-timer {
+            background: linear-gradient(90deg, #D4AF37 0%, #F4D03F 100%);
+            height: 4px;
+            border-radius: 2px;
+            transition: width 1s linear;
+        }
+        
+        .modal-overlay {
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a365d 0%, #0a1628 100%);
+            border: 2px solid #D4AF37;
+        }
+        
+        .property-owned-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid white;
+        }
+        
+        .houses-indicator {
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1px;
+        }
+        
+        .house-dot {
+            width: 4px;
+            height: 4px;
+            background: #27AE60;
+            border-radius: 50%;
+        }
+        
+        .hotel-indicator {
+            width: 8px;
+            height: 6px;
+            background: #E74C3C;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 px-6 py-3 bg-black/40 backdrop-blur-lg border-b border-gold/20">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="text-xl font-bold text-gold flex items-center gap-2" style="font-family: 'Playfair Display', serif;">
+                    <span>🌍</span> GlobeTycoon
+                </a>
+                <div class="hidden sm:flex items-center gap-2 text-cream/60 text-sm">
+                    <span>|</span>
+                    <span>Room: <span id="room-code" class="text-gold font-mono">----</span></span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-sm text-cream/70">
+                    Players: <span id="player-count" class="text-gold font-semibold">1/4</span>
+                </div>
+                <button onclick="leaveGame()" class="px-4 py-2 text-sm text-cream/70 hover:text-red-400 transition-colors">
+                    Leave
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Game Container -->
+    <div class="pt-16 min-h-screen p-4">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- Game Status Bar -->
+            <div class="mb-4 p-4 player-panel">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-2">
+                            <span class="text-cream/60">Turn:</span>
+                            <span id="current-player-name" class="text-gold font-semibold">You</span>
+                            <div id="current-player-indicator" class="w-3 h-3 rounded-full bg-red-500"></div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-cream/60">Round:</span>
+                            <span id="current-round" class="text-gold font-semibold">1</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Turn Timer -->
+                    <div class="flex-1 max-w-xs">
+                        <div class="flex justify-between text-xs text-cream/50 mb-1">
+                            <span>Turn Time</span>
+                            <span id="turn-time-remaining">60s</span>
+                        </div>
+                        <div class="bg-white/10 rounded-full h-1 overflow-hidden">
+                            <div id="turn-timer-bar" class="turn-timer" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleSound()" class="p-2 text-cream/60 hover:text-gold transition-colors" id="sound-btn">
+                            🔊
+                        </button>
+                        <button onclick="showRules()" class="p-2 text-cream/60 hover:text-gold transition-colors">
+                            📋
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Game Layout -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                
+                <!-- Game Board -->
+                <div class="xl:col-span-2">
+                    <div class="game-board-container relative" id="game-board">
+                        <!-- Board spaces will be generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Side Panel -->
+                <div class="space-y-4">
+                    
+                    <!-- Players List -->
+                    <div class="player-panel p-4">
+                        <h3 class="text-gold font-semibold mb-3 flex items-center gap-2">
+                            <span>👥</span> Players
+                        </h3>
+                        <div id="players-list" class="space-y-2">
+                            <!-- Player items populated by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Your Turn Actions -->
+                    <div class="player-panel p-4" id="action-panel">
+                        <h3 class="text-gold font-semibold mb-3 flex items-center gap-2">
+                            <span>🎮</span> Your Actions
+                        </h3>
+                        
+                        <div class="flex justify-center mb-4">
+                            <div class="dice" id="dice" onclick="rollDice()">🎲</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btn-roll" onclick="rollDice()" class="action-button py-3 rounded-lg text-sm">
+                                🎲 Roll
+                            </button>
+                            <button id="btn-buy" onclick="buyProperty()" class="action-button-secondary py-3 rounded-lg text-sm" disabled>
+                                💰 Buy
+                            </button>
+                            <button id="btn-auction" onclick="startAuction()" class="action-button-secondary py-3 rounded-lg text-sm" disabled>
+                                📢 Auction
+                            </button>
+                            <button id="btn-build" onclick="openBuildMenu()" class="action-button-secondary py-3 rounded-lg text-sm" disabled>
+                                🏗️ Build
+                            </button>
+                            <button id="btn-trade" onclick="openTrade()" class="action-button-secondary py-3 rounded-lg text-sm">
+                                🤝 Trade
+                            </button>
+                            <button id="btn-end" onclick="endTurn()" class="action-button-secondary py-3 rounded-lg text-sm" disabled>
+                                ✅ End Turn
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Your Stats -->
+                    <div class="player-panel p-4">
+                        <h3 class="text-gold font-semibold mb-3 flex items-center gap-2">
+                            <span>💼</span> Your Portfolio
+                        </h3>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="text-center p-3 bg-white/5 rounded-lg">
+                                <div class="text-2xl font-bold text-gold" id="player-money">$1,500</div>
+                                <div class="text-xs text-cream/50">Cash</div>
+                            </div>
+                            <div class="text-center p-3 bg-white/5 rounded-lg">
+                                <div class="text-2xl font-bold text-gold" id="player-networth">$1,500</div>
+                                <div class="text-xs text-cream/50">Net Worth</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-sm mb-2">
+                            <span class="text-cream/60">Properties:</span>
+                            <span class="text-gold font-semibold" id="property-count">0</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-cream/60">Jail Cards:</span>
+                            <span class="text-gold font-semibold" id="jail-cards">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Your Properties -->
+                    <div class="player-panel p-4">
+                        <h3 class="text-gold font-semibold mb-3 flex items-center gap-2">
+                            <span>🏙️</span> Your Cities
+                        </h3>
+                        <div id="owned-properties" class="space-y-2 max-h-40 overflow-y-auto">
+                            <div class="text-cream/40 text-sm text-center py-4">No cities owned yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Log & Chat -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                <!-- Game Log -->
+                <div class="player-panel p-4">
+                    <h3 class="text-gold font-semibold mb-2 flex items-center gap-2">
+                        <span>📜</span> Game Log
+                    </h3>
+                    <div class="game-log p-3" id="game-log">
+                        <div class="text-cream/60 text-sm">Waiting for game to start...</div>
+                    </div>
+                </div>
+
+                <!-- Chat -->
+                <div class="chat-container">
+                    <div class="p-3 border-b border-gold/20 flex items-center justify-between">
+                        <h3 class="text-gold font-semibold flex items-center gap-2">
+                            <span>💬</span> Chat
+                        </h3>
+                        <span class="text-xs text-cream/40" id="chat-player-count">1 online</span>
+                    </div>
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="p-3 border-t border-gold/20">
+                        <div class="flex gap-2">
+                            <input type="text" id="chat-input" placeholder="Type a message..." 
+                                   class="flex-1 bg-white/5 border border-gold/30 rounded-lg px-3 py-2 text-cream text-sm focus:outline-none focus:border-gold">
+                            <button onclick="sendChatMessage()" class="action-button px-4 py-2 rounded-lg text-sm">
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade Modal -->
+    <div id="trade-modal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="modal-content p-6 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-gold mb-4 text-center" style="font-family: 'Playfair Display', serif;">Propose Trade</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="text-sm text-cream/70 mb-3">You Give</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-cream/50">Money</label>
+                            <input type="number" id="trade-your-money" placeholder="0" 
+                                   class="w-full px-3 py-2 bg-white/5 border border-gold/30 rounded-lg text-cream text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-cream/50">Properties</label>
+                            <div id="trade-your-properties" class="space-y-1 max-h-32 overflow-y-auto">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-sm text-cream/70 mb-3">You Receive</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-cream/50">From Player</label>
+                            <select id="trade-target-player" class="w-full px-3 py-2 bg-white/5 border border-gold/30 rounded-lg text-cream text-sm">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-cream/50">Money</label>
+                            <input type="number" id="trade-their-money" placeholder="0" 
+                                   class="w-full px-3 py-2 bg-white/5 border border-gold/30 rounded-lg text-cream text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-cream/50">Properties</label>
+                            <div id="trade-their-properties" class="space-y-1 max-h-32 overflow-y-auto">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeTradeModal()" class="flex-1 py-3 border border-gold/30 rounded-lg text-cream hover:bg-white/5 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="proposeTrade()" class="flex-1 action-button py-3 rounded-lg">
+                    Propose Trade
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Build Modal -->
+    <div id="build-modal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="modal-content p-6 rounded-xl max-w-md w-full">
+            <h3 class="text-xl font-bold text-gold mb-4 text-center" style="font-family: 'Playfair Display', serif;">Build Landmarks</h3>
+            
+            <div id="build-options" class="space-y-2 max-h-64 overflow-y-auto">
+                <!-- Populated by JS -->
+            </div>
+            
+            <button onclick="closeBuildModal()" class="w-full mt-4 py-3 border border-gold/30 rounded-lg text-cream hover:bg-white/5 transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- Auction Modal -->
+    <div id="auction-modal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="modal-content p-6 rounded-xl max-w-md w-full text-center">
+            <h3 class="text-xl font-bold text-gold mb-2" style="font-family: 'Playfair Display', serif;">Auction</h3>
+            <div id="auction-property-name" class="text-lg text-cream mb-4">Property Name</div>
+            
+            <div class="bg-white/5 rounded-lg p-4 mb-4">
+                <div class="text-sm text-cream/60 mb-1">Current Bid</div>
+                <div id="auction-current-bid" class="text-3xl font-bold text-gold">$0</div>
+                <div id="auction-highest-bidder" class="text-sm text-cream/60 mt-1">No bids yet</div>
+            </div>
+            
+            <div class="flex gap-2 mb-4">
+                <button onclick="placeBid(10)" class="flex-1 py-2 bg-white/5 border border-gold/30 rounded-lg text-cream hover:bg-white/10">+$10</button>
+                <button onclick="placeBid(50)" class="flex-1 py-2 bg-white/5 border border-gold/30 rounded-lg text-cream hover:bg-white/10">+$50</button>
+                <button onclick="placeBid(100)" class="flex-1 py-2 bg-white/5 border border-gold/30 rounded-lg text-cream hover:bg-white/10">+$100</button>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="passAuction()" class="flex-1 py-3 border border-red-500/50 rounded-lg text-red-400 hover:bg-red-500/10">
+                    Pass
+                </button>
+                <button onclick="placeCustomBid()" class="flex-1 action-button py-3 rounded-lg">
+                    Custom Bid
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+</body>
+</html>

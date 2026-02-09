@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - GlobeTycoon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a365d 50%, #0a1628 100%);
+            color: #FAF9F6;
+            min-height: 100vh;
+        }
+        .gold-text {
+            color: var(--gold);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 px-6 py-4 bg-black/40 backdrop-blur-lg border-b border-gold/20">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="index.html" class="text-xl font-bold gold-text flex items-center gap-2" style="font-family: 'Playfair Display', serif;">
+                <span>🌍</span> GlobeTycoon
+            </a>
+            <div class="flex items-center gap-6">
+                <a href="index.html" class="text-cream/70 hover:text-gold transition-colors">Home</a>
+                <a href="game.html" class="text-cream/70 hover:text-gold transition-colors">Play</a>
+                <a href="about.html" class="text-gold">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-24 pb-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Hero -->
+            <div class="text-center mb-16">
+                <h1 class="text-5xl md:text-6xl font-bold mb-6" style="font-family: 'Playfair Display', serif; color: var(--gold);">
+                    About GlobeTycoon
+                </h1>
+                <p class="text-xl text-cream/70 max-w-2xl mx-auto">
+                    A modern, competitive multiplayer board game featuring real-world cities.
+                </p>
+            </div>
+
+            <!-- Creator Section -->
+            <div class="glass-card rounded-2xl p-8 md:p-12 mb-12">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center text-6xl">
+                        👨‍💻
+                    </div>
+                    <div class="text-center md:text-left">
+                        <p class="text-cream/60 text-sm mb-2">Created by</p>
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Mohammad Suhail Khan</h2>
+                        <p class="text-cream/70 mb-6 max-w-lg">
+                            Passionate game developer and entrepreneur building the next generation of competitive online board games. 
+                            GlobeTycoon is my vision of bringing people together through strategic, fast-paced gameplay featuring real-world destinations.
+                        </p>
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                            <a href="https://instagram.com/suhail_yousafzai" target="_blank" 
+                               class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg text-white font-semibold hover:opacity-90 transition-opacity">
+                                📸 @suhail_yousafzai
+                            </a>
+                            <a href="https://github.com/mohammadsuhailkhan" target="_blank" 
+                               class="flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors">
+                                💻 GitHub
+                            </a>
+                            <a href="mailto:contact@globetycoon.io" 
+                               class="flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors">
+                                ✉️ Contact
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Section -->
+            <div class="glass-card rounded-2xl p-8 text-center mb-12">
+                <h3 class="text-2xl font-bold gold-text mb-4">Support the Project</h3>
+                <p class="text-cream/70 mb-6 max-w-lg mx-auto">
+                    Your support helps me continue improving GlobeTycoon, adding new features, 
+                    and keeping the servers running for everyone to enjoy.
+                </p>
+                <a href="https://buymeacoffee.com/suhail_khan" target="_blank" 
+                   class="inline-flex items-center gap-3 px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-xl font-bold text-lg transition-colors">
+                    ☕ Buy Me a Coffee
+                </a>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="glass-card rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-4">🌍</div>
+                    <h4 class="text-lg font-bold gold-text mb-2">40 Real Cities</h4>
+                    <p class="text-cream/60 text-sm">From Mumbai to London, own iconic destinations</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-4">⚡</div>
+                    <h4 class="text-lg font-bold gold-text mb-2">Fast-Paced</h4>
+                    <p class="text-cream/60 text-sm">15-30 minute matches with quick turns</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-4">👥</div>
+                    <h4 class="text-lg font-bold gold-text mb-2">Multiplayer</h4>
+                    <p class="text-cream/60 text-sm">Play with friends or matchmake globally</p>
+                </div>
+            </div>
+
+            <!-- Tech Stack -->
+            <div class="glass-card rounded-2xl p-8 mb-12">
+                <h3 class="text-2xl font-bold gold-text mb-6 text-center">Built With</h3>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <span class="px-4 py-2 bg-white/5 rounded-lg text-cream/80">Node.js</span>
+                    <span class="px-4 py-2 bg-white/5 rounded-lg text-cream/80">Socket.io</span>
+                    <span class="px-4 py-2 bg-white/5 rounded-lg text-cream/80">JavaScript</span>
+                    <span class="px-4 py-2 bg-white/5 rounded-lg text-cream/80">Tailwind CSS</span>
+                    <span class="px-4 py-2 bg-white/5 rounded-lg text-cream/80">WebSockets</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-8 px-6 bg-black/40 border-t border-gold/20">
+        <div class="max-w-7xl mx-auto text-center">
+            <p class="text-cream/60 mb-2">© 2025 GlobeTycoon. All rights reserved.</p>
+            <p class="text-gold font-semibold">Made with ❤️ by Mohammad Suhail Khan</p>
+        </div>
+    </footer>
+</body>
+</html>
